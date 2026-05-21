@@ -1,5 +1,3 @@
-// src/app/auth/interceptor  /auth.interceptor.ts
-
 import { HttpInterceptorFn, HttpErrorResponse, HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError, BehaviorSubject, filter, take, Observable } from 'rxjs';
@@ -13,20 +11,33 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = authService.getAccessToken();
 
   let authReq = req;
-  if (token && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
+  
+  // FIX 1: Do NOT attach the expired access token to the refresh endpoint request
+  if (token && 
+      !req.url.includes('/auth/login') && 
+      !req.url.includes('/auth/register') && 
+      !req.url.includes('/auth/refresh')) {
     authReq = addTokenHeader(req, token);
   }
 
   return next(authReq).pipe(
     catchError((error) => {
       if (error instanceof HttpErrorResponse && error.status === 401) {
+        
+        // FIX 2: Safety Valve. If the refresh request ITSELF returns a 401, 
+        // the refresh token is dead. Force logout immediately to prevent infinite loops.
+        if (req.url.includes('/auth/refresh')) {
+          isRefreshing = false;
+          authService.logout();
+          return throwError(() => error);
+        }
+
         return handle401Error(authReq, next, authService);
       }
       return throwError(() => error);
     })
   );
 };
-
 
 function addTokenHeader(request: HttpRequest<any>, token: string): HttpRequest<any> {
   return request.clone({
@@ -54,6 +65,10 @@ function handle401Error(request: HttpRequest<any>, next: HttpHandlerFn, authServ
           return throwError(() => err);
         })
       );
+    } else {
+      isRefreshing = false;
+      authService.logout();
+      return throwError(() => new Error('No refresh token available'));
     }
   }
 
