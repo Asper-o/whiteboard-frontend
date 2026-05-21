@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'PLACEHOLDER_URL' // We will paste the real Render URL here later!
+  apiUrl: 'https://whiteboard-backend-jo4e.onrender.com'
 };
