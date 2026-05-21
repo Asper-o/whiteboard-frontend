@@ -1,0 +1,76 @@
+<body>
+  <!-- MAIN TOOLBAR -->
+<div class="toolbar" (pointerdown)="$event.stopPropagation()">
+  
+  <div class="group">
+    <button [class.active]="tools.tool === 'hand'" (click)="activateTool('hand')" title="Hand Tool">✋</button>
+    <button [class.active]="tools.tool === 'pen'" (click)="activateTool('pen')" title="Pen Tool">✏️</button>
+    <button [class.active]="tools.snapToGrid" (click)="tools.toggleSnap()" title="Snap to Grid">🧲</button>
+  </div>
+
+  <div class="group" *ngIf="tools.tool === 'pen'">
+    <input type="color" [value]="tools.currentColor" (input)="onColorPreview($event)" (change)="onColorCommit($event)" title="Color"/>
+    <input type="range" min="1" max="30" [ngModel]="tools.penWidth" (ngModelChange)="tools.setPenWidth($event)" title="Pen Width"/>
+    <div class="history" *ngIf="tools.colorHistory.length > 0">
+        <div *ngFor="let color of tools.colorHistory" class="swatch" [style.background]="color" (click)="tools.setColor(color)"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DECOUPLED FLOATING ISLAND (Text Tools) -->
+<div class="text-format-island" *ngIf="showTextTools" (pointerdown)="$event.stopPropagation()">
+    
+    <!-- Top Row: U I B -->
+    <div class="format-row style-buttons">
+        <button [class.active]="(board.board.activeBox?.textDecoration || tools.textStyle.textDecoration) === 'underline'"
+                (click)="toggleUnderline()" (pointerdown)="$event.preventDefault()" title="Underline"><u>U</u></button>
+                
+        <button [class.active]="(board.board.activeBox?.fontStyle || tools.textStyle.fontStyle) === 'italic'"
+                (click)="toggleItalic()" (pointerdown)="$event.preventDefault()" title="Italic"><i>I</i></button>
+                
+        <button [class.active]="(board.board.activeBox?.fontWeight || tools.textStyle.fontWeight) === 'bold'"
+                (click)="toggleBold()" (pointerdown)="$event.preventDefault()" title="Bold"><b>B</b></button>
+    </div>
+
+    <!-- Bottom Row: Font Icon + Toggle Font Mode -->
+    <div class="format-row">
+        
+        <!-- The Font Icon (Dropdown Trigger) -->
+        <div class="font-picker-wrapper">
+            <button class="font-trigger" [class.active]="isFontMenuOpen" (click)="toggleFontMenu()" (pointerdown)="$event.preventDefault()" title="Change Font">
+                <span class="font-icon" [style.fontFamily]="board.board.activeBox?.fontFamily || tools.textStyle.fontFamily">F</span>
+            </button>
+
+            <div class="font-dropdown" *ngIf="isFontMenuOpen">
+                <div *ngFor="let font of fonts" class="font-item" [class.selected]="font.name === currentFontName" (click)="selectFont(font.value)" (pointerdown)="$event.preventDefault()">
+                    <span [style.fontFamily]="font.value">{{ font.name }}</span>
+                </div>
+            </div>
+            <div class="picker-backdrop" *ngIf="isFontMenuOpen" (click)="isFontMenuOpen = false"></div>
+        </div>
+
+        <!-- Compound Font Mode Group -->
+        <div class="font-mode-group" [class.is-fixed]="board.board.activeBox?.isFixedFont">
+            <button class="font-mode-btn" 
+                    (click)="toggleFontMode()" 
+                    title="Toggle Font Mode"
+                    (pointerdown)="$event.preventDefault()">
+                {{ board.board.activeBox?.isFixedFont ? '📏 Fixed' : '📐 Free' }}
+            </button>
+
+            <!-- Vertical Font Spinner -->
+            <div class="vertical-font-spinner" *ngIf="board.board.activeBox?.isFixedFont" (pointerdown)="$event.stopPropagation()">
+                <button class="spin-btn spin-up" (click)="changeFontSize(1)">▲</button>
+                
+                <input type="number" class="island-font-size-input"
+                       [(ngModel)]="board.board.activeBox!.fontSize" 
+                       (ngModelChange)="board.notifyChange(); board.saveCheckpoint()"
+                       min="8" max="200" title="Font Size">
+                       
+                <button class="spin-btn spin-down" (click)="changeFontSize(-1)">▼</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>

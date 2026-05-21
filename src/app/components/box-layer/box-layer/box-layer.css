@@ -1,0 +1,320 @@
+body{
+    margin: 0;
+}
+:host {
+  display: block;
+  position: absolute;
+  top: 0; left: 0;
+  inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: auto; /* Let clicks pass through empty space */
+  overflow: hidden;
+
+  touch-action: none; /* Prevents pull-to-refresh and page scrolling */
+  -webkit-tap-highlight-color: transparent; /* Kills the grey tap blink */
+}
+
+.layer-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100%;
+
+  transform-origin: 0 0;
+}
+.layer-container.drawing-mode .box,
+.layer-container.drawing-mode .box * {
+    pointer-events: none !important;
+}
+.layer-container.drawing-mode .box.selected,
+.layer-container.drawing-mode .box.selected * {
+    pointer-events: auto !important;
+}
+
+.handle-container {
+  position: absolute;
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Let clicks pass through the empty area */
+  z-index: 10; /* Ensure it sits above the text/shapes */
+  overflow: visible; /* CRITICAL: Allow handles to stick out! */
+}
+
+/* ================= BOX STYLES ================= */
+
+
+.box.dragging {
+  opacity: 0.85;
+}
+
+/* ================= TEXT EDITOR ================= */
+/* src/app/components/box-layer.css */
+
+/* 1. CONTAINER: Pure Geometry (No visual styles) */
+.box {
+  position: absolute;
+  pointer-events: auto;
+  cursor: grab;
+  
+  display: block;
+  overflow: visible; /* Let handles be seen */
+  
+  /* FORCE ZERO SPACING */
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  
+  box-sizing: border-box;
+
+
+  /* height: auto !important; */
+  min-width: min-content !important;
+  transform-origin: 0 0;
+
+  -webkit-touch-callout: none; /* Kills the iOS context menu on long-press */
+}
+.box:not(.is-shape) {
+  height: auto ;
+}
+.box.is-shape {
+  height: auto; /* The inline [style.height.px] will override this naturally */
+}
+
+svg {
+  pointer-events: auto; /* Or 'auto' */
+   width: 100%;
+   display: block;
+  height: 100%;
+}
+
+/* 2. SELECTION: Use Outline (Does not affect layout) */
+.box.selected {
+  outline: 1px dashed #1976d2; 
+  border: none !important;
+  cursor: text;
+}
+
+.editor, .view-text, .hit-target {
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1;
+  text-align: left;
+  vertical-align: top;
+  /* display: block; */
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  width: 100%;
+  min-height: 1em !important;
+}
+
+/* 3. TEXT ENGINE: The "Stick" Logic */
+.editor, .content {
+/* display: block; */
+  /* width: 100%; */
+  height: auto;
+
+  vertical-align: top;
+  line-height: 1;
+  
+  /* Reset */   
+  /* margin: 0 !important; */
+  /* padding: 0 !important; */
+  /* border: none !important; */
+  outline: none !important;
+  background: transparent;
+  
+  /* Typography */
+  text-align: left;
+  /* line-height: 1;  */
+  /* font-family: sans-serif; */
+  /* white-space: pre-wrap; */
+  /* word-break: break-word; */
+  resize: none; 
+  overflow: hidden;
+  transform-origin: 0 0;
+
+  pointer-events: auto;
+  
+  -webkit-appearance: none; /* Keeps iOS Safari happy */
+  appearance: none;         /* The modern standard (makes the warning go away) */
+  border-radius: 0;
+}
+.editor.is-static {
+  pointer-events: auto !important; 
+  cursor: grab;
+  outline: none !important;
+
+  user-select: none !important;
+  -webkit-user-select: none !important; /* Safari/Chrome */
+  -moz-user-select: none !important;    /* Firefox */
+}
+
+/* EDIT MODE: Clicks are caught by onTextDown */
+.editor.is-editing {
+  pointer-events: auto; 
+  cursor: text;
+  
+  /* CRITICAL FIX: You cannot type if user-select is none! */
+  user-select: text !important; 
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+}
+
+.editor.hidden {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute; /* Take it out of flow so View Text sits on top */
+  top: 0; left: 0;
+}
+
+.view-text {
+  position: relative;
+  width: 100%;
+  top: 0; left: 0;
+  height: auto;
+  
+  /* CRITICAL: The container is a GHOST. Clicks pass through it! */
+  pointer-events: none;
+  user-select: none;
+}
+
+.hit-target {
+  /* CRITICAL: The text itself is SOLID. Clicks hit this! */
+  pointer-events: auto; 
+  cursor: grab;
+  
+  /* Use 'inline' so the bounding box wraps tightly around words */
+  /* This makes the space at the end of lines hollow too */
+  display: inline-block;
+  
+  
+  
+  /* Kill Highlight on double-tap */
+  -webkit-user-select: none;
+  user-select: none;
+
+  -webkit-touch-callout: none;
+}
+/* 4. CLIPPING MASK (Optional but recommended) */
+.clipping-mask {
+  position: relative;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible !important;
+  padding: 0;
+  margin: 0;
+  display: block; /* Use block to avoid Flexbox gap issues */
+  pointer-events: none;
+}
+
+/* ================= HANDLES ================= */
+.handle-resize {
+  width: 12px;
+  height: 12px;
+  background: #1976d2;
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  cursor: se-resize;
+}
+
+/* Hover feedback */
+.handle-resize:hover {
+  background: #1a73e8;
+  transform: scale(1.15);
+}
+
+/* Active feedback */
+.handle-resize:active {
+  transform: scale(1.25);
+}
+
+.handle-rotate,
+.handle-resize {
+  pointer-events: auto;
+}
+
+
+/* 2. ROTATE HANDLE (Top Lollipop) */
+.handle-rotate {
+  width: 14px;
+  height: 14px;
+  background: orange;
+  border-radius: 50%;
+
+  position: absolute;
+  top: 50%;
+  right: -28px;
+  transform: translateY(-50%);
+
+  cursor: grab;
+  border: 2px solid white;
+
+  pointer-events: auto;
+}
+
+/* .handle-rotate {
+  background: red !important;
+} */
+
+
+
+.handle-rotate:hover {
+  transform: translateY(-50%) scale(1.1);
+}
+
+.handle-rotate:active {
+  cursor: grabbing;
+  transform: translateY(-50%) scale(1.15);
+}
+
+
+
+.handle-rotate:active::after {
+  color: white;
+}
+.handle-resize, .handle-rotate {
+    /* 👇 ADD THIS 👇 */
+    touch-action: none;
+}
+/* Add this to the wrapper div holding your text/textarea */
+
+/* 1. Styling the Textarea (Edit Mode) */
+.editor {
+    width: 100%;
+    text-align: justify;       /* Aligns text to both left and right edges */
+    text-justify: inter-word;  /* Makes the spacing between words look natural */
+    box-sizing: border-box;
+    padding: 8px;              /* Keeps text from touching the absolute edge */
+    background: transparent;
+    border: none;
+    resize: none;
+    outline: none;
+    overflow: hidden;
+}
+
+/* 2. Styling the View Container (Display Mode) */
+.view-text {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 8px;              /* MUST match the padding of .editor so it doesn't jump */
+}
+
+/* 3. Styling the actual text span */
+.hit-target {
+    display: block;            /* Span is inline by default, block makes it fill the width */
+    width: 100%;
+    text-align: justify;       /* Aligns text to both left and right edges */
+    text-justify: inter-word;
+    white-space: pre-wrap;     /* Respects user's enter/return line breaks */
+}
+    

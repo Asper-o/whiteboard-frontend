@@ -1,0 +1,154 @@
+/* Layout Layout Wrapper */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f4f4f9;
+  font-family: sans-serif;
+}
+
+/* Authentication Card Core Structure */
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.login-card p {
+  color: #666;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+/* Form Controls & Inputs */
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+}
+
+.form-group input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+/* Primary Action Buttons */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover { 
+  background-color: #0052a3; 
+}
+
+button:active { 
+  transform: scale(0.98); 
+}
+
+button:disabled {
+  background-color: #99c2ff;
+  cursor: not-allowed;
+}
+
+/* Secondary Guest Button style override */
+.btn-guest {
+  background: white;
+  color: #444;
+  border: 1px solid #ccc;
+  margin-top: 0;
+}
+
+.btn-guest:hover { 
+  background: #f9f9f9; 
+}
+
+/* Alerts and Banners */
+.error-banner {
+  background-color: #ffe6e6;
+  color: #d93025;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.error-banner.success {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+/* Interface Utility Dividers */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 25px 0;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.divider span {
+  padding: 0 10px;
+}
+
+/* Navigation & Form Footers */
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.toggle-link {
+  color: #0066cc;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.toggle-link:hover { 
+  text-decoration: underline; 
+}

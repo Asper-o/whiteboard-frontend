@@ -1,0 +1,61 @@
+<body>
+    <div class="login-container">
+  <div class="login-card">
+    
+    <!-- Dynamic Header -->
+    <h2>{{ isLoginMode ? 'Welcome Back' : 'Create an Account' }}</h2>
+    <p>{{ isLoginMode ? 'Sign in to collaborate on the whiteboard.' : 'Sign up to save and manage your workspaces.' }}</p>
+
+    <!-- Error/Success Banner -->
+    <div *ngIf="errorMessage" class="error-banner" [class.success]="errorMessage.includes('successful')">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      
+      <!-- Name Field (Only visible when Registering) -->
+      <div class="form-group" *ngIf="!isLoginMode">
+        <label for="name">Full Name</label>
+        <input id="name" type="text" formControlName="name" placeholder="Architect">
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" placeholder="name@example.com">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" placeholder="••••••••">
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid || isLoading">
+        <span *ngIf="isLoading">{{ isLoginMode ? 'Logging in...' : 'Registering...' }}</span>
+        <span *ngIf="!isLoading">{{ isLoginMode ? 'Sign In' : 'Create Account' }}</span>
+      </button>
+
+    </form>
+
+    <!-- The Divider -->
+    <div class="divider">
+      <span>OR</span>
+    </div>
+
+    <!-- Guest Button -->
+    <button type="button" class="btn-guest" (click)="continueAsGuest()">
+      🕵️ Continue as Guest
+    </button>
+
+    <!-- The Footer Toggle -->
+    <div class="auth-footer">
+      <p *ngIf="isLoginMode">
+        Don't have an account? <span class="toggle-link" (click)="toggleMode()">Register here</span>
+      </p>
+      <p *ngIf="!isLoginMode">
+        Already have an account? <span class="toggle-link" (click)="toggleMode()">Sign in</span>
+      </p>
+    </div>
+
+  </div>
+</div>
+</body>

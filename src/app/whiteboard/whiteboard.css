@@ -1,0 +1,767 @@
+/* src/app/whiteboard.css */
+
+/* =========================================
+   1. GLOBAL BOARD
+   ========================================= */
+body{
+    margin: 0;
+}
+.board {
+  width: 100vw;
+  height: 100vh;
+  background: #f1f1f1;
+  position: relative;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+  
+  /* Disable selection on the background */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* =========================================
+   3. TEXT EDITING (Refactored from .editor)
+   ========================================= */
+
+
+/* =========================================
+   5. UI OVERLAYS
+   ========================================= */
+app-toolbar {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 100;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+/* =========================================
+   6. SVG STYLES
+   ========================================= */
+   
+.canvas-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none; /* Let clicks pass through empty areas */
+}
+
+/* =========================================
+   HAMBURGER MENU & DROPDOWN UI
+   ========================================= */
+
+.hamburger-menu-container {
+    position: relative;
+}
+
+/* Hamburger Icon Animation */
+.hamburger-btn {
+    flex-direction: column;
+    gap: 4px;
+}
+.hamburger-btn .bar {
+    width: 20px;
+    height: 2px;
+    background-color: #333;
+    transition: all 0.3s ease-in-out;
+    border-radius: 2px;
+}
+/* Turn into an 'X' when open */
+.hamburger-btn.is-open .bar:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+.hamburger-btn.is-open .bar:nth-child(2) {
+    opacity: 0;
+}
+.hamburger-btn.is-open .bar:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+.menu-dropdown-wrapper {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* This creates the detached "island" effect */
+    z-index: 200;
+}
+
+/* The Main Floating Dropdown Box */
+.main-dropdown {
+    width: 260px; /* Same proportion for both */
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.danger-dropdown {
+    width: 236px; /* Exact same width as main dropdown */
+    background: #fff5f5;
+    border: 1px solid #ffcccc;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d93025; /* A strong red */
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.1s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.danger-dropdown:hover {
+    background: #ffe6e6;
+}
+
+.danger-dropdown:active {
+    transform: scale(0.98);
+}
+
+/* Individual Rows inside Dropdown */
+.dropdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f5f5f5;
+}
+.dropdown-row:last-child {
+    border-bottom: none;
+}
+
+/* Left side of the row (Clickable text/accordion) */
+.row-left {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    flex-grow: 1;
+    padding: 6px 0;
+}
+.row-left:hover, .action-row:hover {
+    color: #0066cc;
+}
+
+/* The Rotating Triangle */
+.triangle {
+    display: inline-block;
+    font-size: 10px;
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+    color: #666;
+}
+.triangle.open {
+    transform: rotate(90deg);
+}
+
+/* Right side of the row (Mini icon buttons) */
+.row-right {
+    display: flex;
+    gap: 6px;
+}
+
+.mini-btn {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.1s, transform 0.1s;
+}
+.mini-btn:hover {
+    background: #e4e4e4;
+}
+.mini-btn:active {
+    transform: scale(0.9);
+}
+
+/* Expanding Nested Menu (Page Sizes) */
+.nested-menu {
+    background-color: #f9f9fc;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    flex-direction: column;
+}
+.nested-menu div {
+    padding: 10px 15px 10px 32px; /* Indented text */
+    font-size: 13px;
+    color: #444;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+.nested-menu div:hover {
+    background-color: #e6f2ff;
+    color: #0066cc;
+}
+
+/* Full clickable rows (Add Image) */
+.action-row {
+    cursor: pointer;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Dedicated styles for the isolated Clear Board button */
+.clear-btn {
+    color: #ff4444;
+    border-color: #ffcccc;
+    background-color: #fff5f5;
+}
+.clear-btn:hover {
+    background-color: #ffe6e6;
+}
+
+
+
+
+
+
+
+/* Smooth transition for hover effects if you add them */
+path,
+line, 
+rect, 
+ellipse, 
+circle, 
+polyline{
+  transition: stroke 0.1s;
+  pointer-events: stroke !important; 
+  cursor: pointer;
+}
+/* Change your existing rule to this: */
+
+.board:not(.is-drawing) path:hover, 
+.board:not(.is-drawing) line:hover,
+.board:not(.is-drawing) rect:hover,
+.board:not(.is-drawing) ellipse:hover,
+.board:not(.is-drawing) circle:hover,
+.board:not(.is-drawing) polyline:hover {
+    filter: drop-shadow(0 0 4px rgba(25, 118, 210, 0.8));
+    cursor: pointer;
+}
+
+app-canvas-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  cursor: pointer;
+}
+app-box-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+
+/* src/app/whiteboard.css */
+
+/* ... existing styles ... */
+
+/* RECENTER BUTTON (Bottom Left) */
+.recenter-btn {
+  position: fixed;
+  /* bottom: 20px; */
+  /* left: 15px; */
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  left: calc(15px + env(safe-area-inset-left, 0px));
+  z-index: 100; /* Above canvas */
+  
+  background: white;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  font-weight: bold;
+  font-family: sans-serif;
+  transition: transform 0.1s;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.recenter-btn:active {
+  transform: scale(0.95);
+}
+
+/* DELETE BUTTON (Bottom Right - Floating Action Button) */
+.delete-btn {
+  position: fixed;
+  /* bottom: 30px; */
+  /* right: 30px; */
+  bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+  right: calc(30px + env(safe-area-inset-right, 0px));
+  z-index: 100; /* Above canvas */
+  
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  
+  background: #ff4444;
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  transition: transform 0.2s, background 0.2s;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.delete-btn:hover {
+  background: #ff0000;
+  transform: scale(1.1);
+}
+.delete-btn:active {
+  transform: scale(0.9);
+}
+
+/* Optional Pop Animation */
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+/* ... Your existing Global Board styles ... */
+
+.flashlight-grid {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0; 
+    
+    /* Grid Lines */
+    background-size: calc(40px * var(--scale)) calc(40px * var(--scale));
+    background-position: var(--pan-x) var(--pan-y);
+    background-image: 
+        linear-gradient(to right, rgba(0, 229, 255, 0.6) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 229, 255, 0.6) 1px, transparent 1px);
+
+    
+    mask-image: radial-gradient(
+        circle var(--spot-r) at var(--spot-x) var(--spot-y), 
+        black 0%, 
+        rgba(0,0,0,0.5) 40%, 
+        transparent 70%
+    );
+
+    -webkit-mask-image: radial-gradient(
+        circle var(--spot-r) at var(--spot-x) var(--spot-y), 
+        black 0%, 
+        rgba(0,0,0,0.5) 40%, 
+        transparent 70%
+    );
+
+    animation: gridFadeIn 0.2s ease-out;
+    
+}
+
+
+.file-controls {
+  position: fixed;
+  /* top: 15px; */
+  /* right: 15px; */
+  top: calc(28px + env(safe-area-inset-top, 0px));
+  right: calc(15px + env(safe-area-inset-right, 0px));
+  z-index: 100;
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  background: white;
+  border: 1px solid #ccc;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.1s;
+
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.icon-btn:active {
+  transform: scale(0.95);
+}
+
+.icon-btn:hover {
+  background: #f9f9f9;
+}
+
+
+/* src/app/whiteboard.component.css */
+
+/* UNDO / REDO CONTAINER (Bottom Center) */
+.undo-redo-controls {
+    position: fixed;
+    /* bottom: 20px; */
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%); /* Centers it perfectly */
+    z-index: 100;
+    
+    display: flex;
+    gap: 15px; /* Space between buttons */
+}
+
+/* Reuse your existing .icon-btn styles, or add specifics here */
+.undo-redo-controls .icon-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 50%; /* Make them circles! */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.1s, background 0.1s;
+}
+
+.undo-redo-controls .icon-btn:active {
+    transform: scale(0.9);
+}
+
+.undo-redo-controls .icon-btn:hover {
+    background: #f0f0f0;
+}
+
+/* THE REALISTIC PAPER SHEET */
+.page-sheet {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 0 60px rgba(0,0,0,0.15); /* Drop shadow */
+    border: 1px solid #ccc;
+    /* IMPORTANT: pointer-events: none ensures you can draw "through" the paper onto the canvas layer behind/above it */
+    pointer-events: none; 
+}
+
+.page-label {
+    position: absolute;
+    top: -25px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-family: monospace;
+    font-size: 12px;
+    color: #888;
+}
+
+/* THE DROPDOWN MENU */
+.dropdown-group {
+    display: inline-block;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 160px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    z-index: 200;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-menu div {
+    padding: 12px 15px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-bottom: 1px solid #f5f5f5;
+
+    -webkit-tap-highlight-color: transparent;
+}
+
+.dropdown-menu div:last-child {
+    border-bottom: none;
+}
+
+.dropdown-menu div:hover {
+    background-color: #f0f7ff;
+    color: #007bff;
+}
+
+
+
+/* =========================================================
+   ⬇️ APPEND THIS TO YOUR EXISTING CSS ⬇️
+   ========================================================= */
+
+/* 1. FLASHLIGHT GRID 
+   Must be z-index 1 to sit ON TOP of the paper (z-index 0) 
+   but BELOW the UI (z-index 100) */
+.flashlight-grid {
+    z-index: 1 !important; 
+    pointer-events: none;
+}
+
+/* 2. PAGE VIEW WRAPPER 
+   This handles the Pan/Zoom for the whole page */
+.page-view-wrapper {
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 0;
+    transform-origin: 0 0;
+    z-index: 0; /* The paper sits at the bottom */
+}
+
+/* 3. THE PAGE CLIPPER (The White Paper) */
+.page-clipper {
+    position: absolute;
+    /* Top/Left are calculated in HTML to center it */
+    
+    background-color: white;
+    box-shadow: 0 0 80px rgba(0,0,0,0.25); /* Drop Shadow */
+    
+    /* ✂️ THIS IS THE MAGIC: Hides drawing outside the box */
+    overflow: hidden; 
+    
+    pointer-events: auto; /* Allow clicking the paper */
+}
+
+/* 4. PAGE LABEL */
+.page-label {
+    position: absolute;
+    top: -25px;
+    width: 100%;
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+/* ... existing css ... */
+
+/* 5. INNER LAYER RESET (Fixed) */
+.inner-layer-reset {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* Give it a tiny size so it 'exists' in the DOM tree, but overflow visible lets content show */
+    width: 1px; 
+    height: 1px;
+    overflow: visible;
+    z-index: 10; /* Ensure this is ABOVE the page background */
+    pointer-events: none; /* Let clicks pass through this wrapper */
+}
+
+/* 6. STOP DOUBLE TRANSFORMS (Fixed) */
+.inner-layer-reset app-canvas-layer, 
+.inner-layer-reset app-box-layer {
+    transform: none !important; 
+    inset: auto !important;
+    
+    /* Allow the component to have size, but position it at the origin */
+    width: 100% !important; 
+    height: 100% !important;
+    
+    /* Center this layer on the parent (which is center of page) */
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    
+    overflow: visible !important;
+}
+
+/* 7. ENSURE BOXES ARE CLICKABLE & VISIBLE */
+::ng-deep .box {
+    pointer-events: auto !important;
+    /* Ensure boxes don't get hidden by any parent overflow rules */
+    visibility: visible !important; 
+}
+
+/* 8. DROPDOWN MENU (If you didn't have styles for it yet) */
+.dropdown-group { position: relative; }
+.dropdown-menu {
+    position: absolute; top: 45px; right: 0; width: 150px;
+    background: white; border: 1px solid #ccc; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column; overflow: hidden;
+    z-index: 200;
+}
+.dropdown-menu div {
+    padding: 10px 15px; cursor: pointer; font-size: 14px; color: #333;
+}
+.dropdown-menu div:hover { background: #f0f7ff; color: #007bff; }
+
+
+/* ... Keep your existing CSS ... */
+
+/* 1. LAYER CONTAINER */
+.layer-container {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    /* The clip-path is applied inline in HTML */
+}
+
+/* 2. PAGE WRAPPER (Visual Background Only) */
+.page-view-wrapper {
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 0;
+    transform-origin: 0 0;
+    z-index: 0; /* Behind drawings */
+}
+
+.page-sheet {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 0 100px rgba(0,0,0,0.3);
+    /* No overflow hidden needed here, the layer container handles clipping */
+}
+
+
+
+/* =========================================
+   USER PROFILE ISLAND
+   ========================================= */
+.user-profile-island {
+    position: fixed;
+    top: 28px;
+    right: 60px;
+    z-index: 200; /* Ensure it's above everything */
+}
+
+/* The Avatar Button */
+.user-avatar-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 15%; /* Make it a perfect circle */
+    background: #1e1e1e;
+    color: white;
+    border: 2px solid #444;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.user-avatar-btn:hover {
+    background: #333;
+    border-color: #00bcd4; /* Cyan glow on hover */
+}
+
+.user-avatar-btn.active {
+    background: #e3f2fd;
+    border-color: #1976d2;
+}
+
+/* Positioning the Dropdown to drop from the right edge */
+/* Positioning the Dropdown so it doesn't push the button */
+.user-dropdown {
+    position: absolute; /* MAGIC FIX: Detaches it from the button's layout */
+    top: 55px; /* Just below the avatar */
+    right: 0;  /* Anchors the menu's right edge to the button's right edge */
+    
+    /* Standalone Dropdown Styling */
+    width: 200px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+/* Specific styling for the user header */
+.dropdown-header {
+    padding: 12px;
+    border-bottom: 1px solid #f5f5f5;
+    background: #fcfcfc;
+}
+
+.user-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Style the logout row to look slightly destructive/final */
+.logout-row {
+    color: #d93025;
+    border-top: 1px solid #f5f5f5;
+}
+.logout-row:hover {
+    color: #d93025;
+    background-color: #fff5f5;
+}   
+
+
+/* Styling for individual canvas items in the list */
+.canvas-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #444;
+    transition: background 0.2s;
+    border-radius: 4px;
+}
+
+.canvas-item:hover {
+    background: #f5f5f5;
+}
+
+/* Highlight the canvas they are currently looking at */
+.canvas-item.active-canvas {
+    background: #e3f2fd;
+    color: #1976d2;
+    font-weight: bold;
+}
+
+.empty-state {
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    color: #999;
+    font-style: italic;
+}

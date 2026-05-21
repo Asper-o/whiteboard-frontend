@@ -1,0 +1,185 @@
+
+<div 
+  class="board"
+  (pointerdown)="onPointerDown($event)"
+  (wheel)="onWheel($event)">
+
+   <div class="flashlight-grid"
+      *ngIf="tools.snapToGrid && board.board.activeBox"
+      [style.--scale]="board.board.scale"
+      
+      [style.--pan-x.px]="board.board.canvasX + ((board.getActivePage()?.x || 0) * board.board.scale)"
+      [style.--pan-y.px]="board.board.canvasY + ((board.getActivePage()?.y || 0) * board.board.scale)"
+      
+      [style.--spot-x.px]="((board.board.activeBox.x + board.board.activeBox.width/2) * board.board.scale) + board.board.canvasX"
+      [style.--spot-y.px]="((board.board.activeBox.y + board.board.activeBox.height/2) * board.board.scale) + board.board.canvasY"
+      [style.--spot-r.px]="( (board.board.activeBox.width > board.board.activeBox.height ? board.board.activeBox.width : board.board.activeBox.height) * 0.8 + 150 ) * board.board.scale">
+   </div>
+
+   <div class="page-view-wrapper"
+        *ngIf="board.board.pageConfig.type === 'fixed'"
+        [style.transform]="'translate(' + board.board.canvasX + 'px, ' + board.board.canvasY + 'px) scale(' + board.board.scale + ')'">
+        
+        <div class="page-sheet" 
+             *ngFor="let page of board.board.pages; let i = index"
+             [style.width.px]="page.width"
+             [style.height.px]="page.height"
+             [style.left.px]="page.x"
+             [style.top.px]="page.y"
+             [style.opacity]="board.board.activePageId === page.id ? '1' : '0.5'"
+             [style.box-shadow]="board.board.activePageId === page.id ? '0 0 40px rgba(25, 118, 210, 0.4)' : '0 0 10px rgba(0,0,0,0.1)'">
+             
+             <div class="page-label">{{ board.board.pageConfig.name }} - Page {{ i + 1 }}</div>
+        </div>
+   </div>
+
+<div class="layer-container">
+       <app-canvas-layer style="z-index: 2;"></app-canvas-layer>
+       <app-box-layer style="z-index: 3;"></app-box-layer>
+   </div>
+
+   <app-toolbar style="z-index: 100;"></app-toolbar>
+  
+   <button class="recenter-btn" (click)="transform.resetZoom()" (pointerdown)="$event.stopPropagation()">🎯 Recenter</button>
+   <button class="delete-btn" *ngIf="board.hasSelection" (pointerdown)="$event.stopPropagation()" (click)="board.deleteSelected()">🗑️</button>
+
+<div class="file-controls" (pointerdown)="$event.stopPropagation()">
+
+    <!-- 2. NEW: Hamburger Menu System -->
+     <!-- THE USER PROFILE ISLAND (Top Right) -->
+<div class="user-profile-island" (pointerdown)="$event.stopPropagation()">
+    
+    <!-- The User Avatar Button -->
+    <button class="user-avatar-btn" (click)="toggleUserMenu()" [class.active]="isUserMenuOpen">
+        {{ isLoggedIn ? '👤' : '❓' }}
+    </button>
+
+    <!-- The Dropdown Menu -->
+    <div class="main-dropdown user-dropdown" *ngIf="isUserMenuOpen">
+        
+        <!-- STATE 1: LOGGED OUT -->
+        <ng-container *ngIf="!isLoggedIn">
+            <div class="dropdown-row action-row" (click)="handleLogin()">
+                <span>🔑 Log In / Register</span>
+            </div>
+        </ng-container>
+
+        <!-- STATE 2: LOGGED IN -->
+        <ng-container *ngIf="isLoggedIn">
+            
+            <div class="dropdown-header">
+                <span class="user-name">Editing: {{ currentCanvasName }}</span>
+            </div>
+
+
+            <div class="dropdown-row action-row" (click)="saveCurrentCanvas()">
+                <span>💾 Save Canvas</span>
+            </div>
+
+            <!-- The Canvas Switcher Row -->
+            <div class="dropdown-row">
+                <div class="row-left" (click)="toggleCanvasMenu()">
+                    <span class="triangle" [class.open]="showCanvasMenu">▶</span>
+                    <span>🎨 My Canvases</span>
+                </div>
+                <div class="row-right">
+                    <button class="mini-btn" (click)="createNewCanvas(); $event.stopPropagation()" title="New Canvas">➕</button>
+                </div>
+            </div>
+
+            <!-- The Nested Canvas List -->
+            <div class="nested-menu" *ngIf="showCanvasMenu">
+                <div *ngFor="let canvas of savedCanvases" 
+                     class="canvas-item" 
+                     [class.active-canvas]="canvas.id === currentCanvasId"
+                     (click)="loadCanvas(canvas.id)">
+                    📄 {{ canvas.name }}
+                </div>
+                <!-- Show this if they have no canvases yet -->
+                <div class="empty-state" *ngIf="savedCanvases.length === 0">
+                    No saved canvases yet.
+                </div>
+            </div>
+
+            <!-- Logout Row -->
+            <div class="dropdown-row action-row logout-row" (click)="handleLogout()">
+                <span>🚪 Log Out</span>
+            </div>
+
+        </ng-container>
+    </div>
+</div>
+    <div class="hamburger-menu-container">
+        
+        <!-- The 3-Line Button that turns into an X -->
+        <button class="icon-btn hamburger-btn" (click)="toggleMainMenu()" [class.is-open]="isMainMenuOpen">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+
+        <!-- THE DROPDOWN WRAPPER: Holds both blocks and handles spacing -->
+        <div class="menu-dropdown-wrapper" *ngIf="isMainMenuOpen">
+            
+            <!-- BLOCK 1: The Main Dropdown -->
+            <div class="main-dropdown">
+
+
+                <!-- LINE 1: Export -->
+                <div class="dropdown-row">
+                    <div class="row-left action-text" (click)="exportToPDF()">
+                        <span>📑 Export PDF</span>
+                    </div>
+                    <div class="row-right">
+                        <button class="mini-btn" (click)="saveProject(); $event.stopPropagation()" title="Save">💾</button>
+                        <button class="mini-btn" (click)="fileInput.click(); $event.stopPropagation()" title="Open">📂</button>
+                    </div>
+                </div>
+                
+                <!-- LINE 2: Page Format -->
+                <div class="dropdown-row">
+                    <div class="row-left" (click)="togglePageMenu()">
+                        <span class="triangle" [class.open]="showPageMenu">▶</span>
+                        <span>📄 Page Format</span>
+                    </div>
+                    <div class="row-right">
+                        <button class="mini-btn" *ngIf="board.board.pageConfig.type === 'fixed'" (click)="addPage(); $event.stopPropagation()" title="Add New Page">➕</button>
+                        <button class="mini-btn" *ngIf="board.board.pageConfig.type === 'fixed' && board.board.pages.length > 1" (click)="removePage(); $event.stopPropagation()" title="Remove Last Page">➖</button>
+                    </div>
+                </div>
+
+                <!-- THE SUB-MENU: Expanding Page Sizes -->
+                <div class="nested-menu" *ngIf="showPageMenu">
+                    <div (click)="setPage('Infinite')">∞ Infinite</div>
+                    <div (click)="setPage('A4')">A4 (Portrait)</div>
+                    <div (click)="setPage('A3')">A3 (Poster)</div>
+                    <div (click)="setPage('16:9')">16:9 (Slide)</div>
+                    <div (click)="setPage('Square')">1:1 (Square)</div>
+                </div>
+
+                
+
+                <!-- LINE 3: Add Image -->
+                <div class="dropdown-row action-row" (click)="imageInput.click()">
+                    <span>🖼️ Add Image</span>
+                </div>
+            </div>
+
+            <!-- BLOCK 2: The Detached Clear Board Island -->
+            <div class="danger-dropdown" (click)="clearBoard()">
+                <span>🗑️ Clear Entire Board</span>
+            </div>
+
+        </div>
+    </div>
+    
+    <!-- Hidden File Inputs -->
+    <input #fileInput type="file" accept=".json" (change)="loadProject($event)" style="display: none;">
+    <input #imageInput type="file" accept="image/*" (change)="handleImageUpload($event)" style="display: none;">
+</div>
+
+
+
+
+
+</div>

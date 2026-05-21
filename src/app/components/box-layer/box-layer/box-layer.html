@@ -1,0 +1,94 @@
+<body>
+    <div class="layer-container" [style.transform]="getGlobalTransform()" [class.drawing-mode]="drawing.isDrawing">
+
+  <!-- Core Element Loop Rendering Engine -->
+  <div
+    *ngFor="let box of boxes$ | async; trackBy: trackByBoxId"
+    class="box"
+    [attr.id]="'box-' + box.id"
+    [class.selected]="box.selected"
+    [class.is-shape]="box.type === 'shape'"
+    [style.transform]="getBoxTransform(box)"
+    [style.width.px]="box.width"
+    [style.height.px]="box.type !== 'text' ? box.height : null"
+    [style.fontSize.px]="box.fontSize"
+    [style.fontWeight]="box.fontWeight || 'normal'"
+    [style.fontStyle]="box.fontStyle || 'normal'"
+    [style.textDecoration]="box.textDecoration || 'none'"
+    [style.fontFamily]="box.fontFamily || 'Arial, sans-serif'"
+    (pointerup)="onBoxUp($event, box)"
+    (pointerdown)="onBoxDown($event, box)">
+
+    <div class="clipping-mask">
+      
+      <!-- IMAGE ELEMENT TEMPLATE CARD -->
+      <ng-container *ngIf="box.type === 'image'">
+        <img [src]="box.src" alt="User Asset" draggable="false" class="raster-img">
+      </ng-container>
+      
+      <!-- TYPOGRAPHY RENDERING ENGINE (Textareas switch automatically based on focus states) -->
+      <ng-container *ngIf="box.type === 'text'">
+        <textarea
+          class="editor"
+          rows="1"
+          [class.is-editing]="box.editing"
+          [class.hidden]="!box.editing"
+          [(ngModel)]="box.text"
+          (input)="autoGrow(box, $event)"
+          [style.fontSize.px]="box.fontSize"
+          [style.fontWeight]="box.fontWeight || 'normal'"
+          [style.fontStyle]="box.fontStyle || 'normal'"
+          [style.textDecoration]="box.textDecoration || 'none'"
+          [style.fontFamily]="box.fontFamily || 'Arial, sans-serif'"
+          [readonly]="!box.editing"
+          (pointerdown)="onTextDown($event, box)"
+          (pointerup)="onTextUp($event, box)"
+          (blur)="finishEditing(box)">
+        </textarea>
+        
+        <div class="view-text" *ngIf="!box.editing">
+          <span 
+            class="hit-target"
+            [style.fontSize.px]="box.fontSize"
+            [style.fontWeight]="box.fontWeight || 'normal'"
+            [style.fontStyle]="box.fontStyle || 'normal'"
+            [style.textDecoration]="box.textDecoration || 'none'"
+            [style.fontFamily]="box.fontFamily || 'Arial, sans-serif'">
+            {{ box.text }}
+          </span>
+        </div>
+      </ng-container>
+  
+      <!-- VECTOR GEOMETRY RENDERING PIPELINE -->
+      <ng-container *ngIf="box.type === 'shape'">
+        <svg class="vector-surface">
+          <ellipse *ngIf="box.shapeType === 'circle'" cx="50%" cy="50%" rx="50%" ry="50%" fill="none" [attr.stroke]="box.color || '#000'" [attr.stroke-width]="box.strokeWidth || 3" vector-effect="non-scaling-stroke" />
+          <rect *ngIf="box.shapeType === 'rectangle'" x="0" y="0" width="100%" height="100%" fill="none" [attr.stroke]="box.color || '#000'" [attr.stroke-width]="box.strokeWidth || 3" vector-effect="non-scaling-stroke" />
+          
+          <ng-container *ngIf="box.shapeType === 'line'">
+            <line *ngIf="!box.flip" x1="0" y1="0" x2="100%" y2="100%" [attr.stroke]="box.color || '#000'" [attr.stroke-width]="box.strokeWidth || 3" vector-effect="non-scaling-stroke" />
+            <line *ngIf="box.flip" x1="0" y1="100%" x2="100%" y2="0" [attr.stroke]="box.color || '#000'" [attr.stroke-width]="box.strokeWidth || 3" vector-effect="non-scaling-stroke" />
+          </ng-container>
+
+          <path *ngIf="box.shapeType === 'diamond'" d="M 50% 0% L 100% 50% L 50% 100% L 0% 50% Z" fill="none" [attr.stroke]="box.color || '#000'" [attr.stroke-width]="box.strokeWidth || 3" vector-effect="non-scaling-stroke" />
+        </svg>
+      </ng-container>
+
+      <!-- FREEHAND DRAWING POLYGON MARKS -->
+      <ng-container *ngIf="box.type === 'drawing'">
+        <svg class="vector-surface" preserveAspectRatio="none">
+          <path [attr.d]="getSvgPath(box.drawPoints, box)" fill="none" [attr.stroke]="box.color || '#000'" [attr.stroke-width]="box.strokeWidth || 3" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </ng-container>
+      
+    </div>
+
+    <!-- TRANSFORM MANIPULATION HANDLES -->
+    <div class="handle-container" *ngIf="box.selected">
+      <div class="handle-rotate" (pointerdown)="onRotateDown($event, box); $event.stopPropagation();"></div>
+      <div class="handle-resize" (pointerdown)="onResizeDown($event, box); $event.stopPropagation();"></div>
+    </div>
+
+  </div>
+</div>
+</body>
